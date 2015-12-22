@@ -1,4 +1,5 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var crypto = require('crypto');
@@ -8,18 +9,29 @@ var sha256 = function(pwd) {
   return hash;
 };
 
-app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
-});
+var clients = [];
+
+app.use(express.static('public'));
 
 io.on('connection', function(socket){
-  socket.sessionid = sha256(socket.handshake.address).substring(0,5);
+  socket.uid = sha256(socket.handshake.address).substring(0,5);
+  console.info('New client connected (id='+ socket.id +').');
+  clients.push(socket);
+  socket.emit('login','Welcome!');
   socket.on('chat message', function(msg){
 	if (msg == '/ping') {
 		io.emit('chat message', 'Server: Pong');
 	} else {
-		io.emit('chat message', socket.sessionid+': '+msg);
+		io.emit('chat message', socket.uid+': '+msg);
 	}
+  });
+  
+  socket.on('disconnect', function() {
+        var index = clients.indexOf(socket);
+        if (index != -1) {
+            clients.splice(index, 1);
+            console.info('Client gone (id=' + socket.id + ').');
+        }
   });
 });
 
