@@ -15,7 +15,11 @@ app.get('/', function(req, res){
 io.on('connection', function(socket){
   socket.sessionid = sha256(socket.handshake.address).substring(0,5);
   socket.on('chat message', function(msg){
-    io.emit('chat message', socket.sessionid+': '+msg);
+	if (msg == '/ping') {
+		io.emit('chat message', 'Server: Pong');
+	} else {
+		io.emit('chat message', socket.sessionid+': '+msg);
+	}
   });
 });
 
