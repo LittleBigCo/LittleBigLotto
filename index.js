@@ -19,6 +19,9 @@ io.on('connection', function(socket){
   clients.push(socket);
   socket.emit('login','Welcome!');
   socket.on('chat message', function(msg){
+	if (msg.length > 128) {
+		msg = 'I am a bad boy that likes to spam.';
+	}
 	if (msg == '/ping') {
 		io.emit('chat message', 'Server: Pong');
 	} else {
